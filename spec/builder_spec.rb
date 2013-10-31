@@ -1,10 +1,10 @@
 require 'spec_helper'
 require 'veto/builder'
-require 'veto/validator_list'
+require 'veto/blocks/list_block'
 
 describe Veto::Builder do
-	let(:validator_list){ Veto::ValidatorList.new }
-	let(:builder) { Veto::Builder.new(validator_list) }
+	let(:list){ Veto::ListBlock.new }
+	let(:builder) { Veto::Builder.new(list) }
 
 	describe "::new" do
 		context 'when no block given' do
@@ -13,13 +13,22 @@ describe Veto::Builder do
 				inst.must_be_instance_of Veto::Builder
 			end
 		end
+
+		context 'when block given' do
+			it 'evals block with new instance' do
+				Veto::Builder.new(stub) do
+					self.must_be_instance_of Veto::Builder
+				end
+			end
+		end
 	end
 
 	describe '#with_options' do
-		it 'adds conditional validator to validator_list' do
-			validator_list.send(:validator_list).must_be_empty
+		it 'adds conditional list block to context list' do
+			list.send(:items).must_be_empty
 			builder.with_options
-			validator_list.send(:validator_list).wont_be_empty
+			list.send(:items).wont_be_empty
+			list.send(:items).first.must_be_instance_of Veto::ConditionalListBlock
 		end
 
 		it 'yields builder to block' do
@@ -32,11 +41,14 @@ describe Veto::Builder do
  	describe '#validates' do
  		it 'adds validators to validation list' do
  			builder.validates :first_name, :presence => true, 
- 							  :exact_length => {:with => 5, :if => :stuff_is_good? },
- 							  :not_null => true
+ 							  :exact_length => {:with => 5, :if => :good? },
+ 							  :not_null => true,
+ 							  :if => 'good',
+ 							  :unless => 'bad'
 
- 			list = validator_list.send(:validator_list)
- 			list.length.must_equal 3
+ 			outer_list = list.send(:items).first
+ 			inner_list = outer_list.send(:items)
+ 			inner_list.length.must_equal 3
  		end
  	end
 end

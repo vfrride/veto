@@ -5,6 +5,42 @@ describe Veto::Base do
 	let(:entity){ stub }
 	let(:validator) { Veto::Base.new(stub) } 
 
+	describe '::with_options' do
+		let(:builder){stub}
+		let(:args){stub}
+
+		it 'delegates method to builder' do
+			Veto::Base.expects(:builder).returns(builder)
+			builder.expects(:with_options).with(args)
+			Veto::Base.with_options(args)
+		end
+	end
+
+	describe '::validates' do
+		let(:builder){stub}
+		let(:args){stub}
+
+		it 'delegates method to builder' do
+			Veto::Base.expects(:builder).returns(builder)
+			builder.expects(:validates).with(args)
+			Veto::Base.validates(args)
+		end
+	end
+
+	describe '::validate' do
+		let(:builder){stub}
+		let(:args){stub}
+
+		it 'delegates method to builder' do
+			Veto::Base.expects(:builder).returns(builder)
+			builder.expects(:validate).with(args)
+			Veto::Base.validate(args)
+		end
+	end
+
+	describe '::validator_list' do
+	end
+
 	describe '::valid?' do
 		it 'initializes new instance and delegates to instance method' do
 			Veto::Base.expects(:new).with(entity).returns(entity)
@@ -18,6 +54,18 @@ describe Veto::Base do
 			Veto::Base.expects(:new).with(entity).returns(entity)
 			entity.expects(:validate!)
 			Veto::Base.validate!(entity)
+		end
+	end
+
+	describe '::with_options' do
+	end
+
+	describe '::validates' do
+	end
+
+	describe '::builder' do
+		it 'is private method' do
+			proc{Veto::Base.builder}.must_raise NoMethodError
 		end
 	end
 
@@ -54,6 +102,12 @@ describe Veto::Base do
 				validator.expects(:errors => errors)
 				proc { validator.validate! }.must_raise ::Veto::InvalidEntity
 			end
+		end
+	end
+
+	describe '#errors' do
+		it 'returns errors object' do
+			validator.errors.must_be_instance_of Veto::Errors
 		end
 	end
 end

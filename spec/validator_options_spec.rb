@@ -1,11 +1,11 @@
 require 'spec_helper'
-require 'veto/validator_config'
+require 'veto/validates_options'
 
-describe Veto::ValidatorConfig do
+describe Veto::ValidatesOptions::ValidatorOptions do
 	let(:type){ :presence }
 	let(:attribute) {:first_name}
 	let(:options){ {} }
-	let(:config){ Veto::ValidatorConfig.new(type, attribute, options) }
+	let(:config){ Veto::ValidatesOptions::ValidatorOptions.new(type, attribute, options) }
 	
 	describe 'options' do
 		context 'when options true' do
@@ -37,7 +37,7 @@ describe Veto::ValidatorConfig do
 	describe '#conditions' do
 		context 'when options is hash' do
 			let(:options){ {:message => 'cannot be blank', :if => :broken?} }
-			it { config.conditions.must_equal options }
+			it { config.conditions.must_equal({:if => :broken?}) }
 		end
 
 		context 'when options is not hash' do

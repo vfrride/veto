@@ -1,58 +1,40 @@
 require 'veto/errors'
+require 'veto/blocks/list_block'
+require 'veto/builder'
 require 'veto/exceptions'
 
 module Veto
 	class Base
-		# class << self
-		# 	# def valid? entity
-		# 	# 	new(entity).valid?
-		# 	# end
+		class << self
+			def with_options *args
+				builder.with_options(*args)
+			end
 
-		# 	# def validate! entity
-		# 	# 	new(entity).validate!
-		# 	# end
+			def validates *args
+				builder.validates(*args)
+			end		
 
-		# 	def validate_presence_of attr attr attr
-		# 		attr.each do |a|
-		# 			PresenceValidator.
-		# 		end
-		# 	end
+			def validate *args
+				builder.validate(*args)
+			end
 
-		# 	def validate_exact_length_of len, attr, attr, attr
-		# 		attrs.each do |attr|
-		# 			validates attr, :exact_length => len
-		# 		end
-		# 	end
+			def validator_list
+				@validator_list ||= ::Veto::ListBlock.new
+			end
 
-		# 	def validate_min_length_of len, attr, attr, attr
-			
-		# 	end
+			def valid? entity
+				new(entity).valid?
+			end
 
-		# 	def validate_max_length_of len, attr, attr, atre
+			def validate! entity
+				new(entity).validate!
+			end
 
-		# 	end
+			private
 
-		# 	def validates attr, options
-		# 	end
-
-		# 	def validate :meth_name
-		# 	end
-		# end
-
-		def self.validates attribute_name, validations_hash={}
-
-		end
-
-		def self.validators
-			@validators ||= []
-		end
-
-		def self.valid? entity
-			new(entity).valid?
-		end
-
-		def self.validate! entity
-			new(entity).validate!
+			def builder
+				::Veto::Builder.new(validator_list)
+			end
 		end
 
 		attr_reader :entity
@@ -66,7 +48,7 @@ module Veto
 		end
 
 		def valid?
-			validate
+			execute
 			errors.empty?
 		end
 
@@ -76,8 +58,9 @@ module Veto
 
 		private
 
-		def validate
-			# TODO initiate validation process here...
+		def execute
+			@errors = ::Veto::Errors.new
+			self.class.validator_list.execute(self, entity)
 		end
 	end
 end

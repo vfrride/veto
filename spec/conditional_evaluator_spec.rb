@@ -1,13 +1,16 @@
 require 'spec_helper'
-require 'veto/conditions/condition'
+require 'veto/conditional_evaluator'
 
-describe Veto::Condition do
-	let(:entity) {stub}
-	let(:context) {stub}
-	let(:condition) { false }
-	let(:result) { Veto::Condition.truthy?(context, entity, condition) }
-
+describe Veto::ConditionalEvaluator do
+	let(:conditions){}
+	let(:entity){Object.new}
+	let(:context){Object.new}
+	let(:evaluator) { Veto::ConditionalEvaluator.new(conditions) }
+	
 	describe '::truthy?' do
+		let(:condition){}
+		let(:result) { Veto::ConditionalEvaluator.truthy?(condition, context, entity) }
+
 		context 'when condition is true' do
 			let(:condition) { true }
 			it { result.must_equal true }
@@ -56,4 +59,32 @@ describe Veto::Condition do
 			it { result.must_equal true }
 		end
 	end
+
+	describe '::truthy_conditionals?' do
+		let(:conditionals){}
+		let(:result) { Veto::ConditionalEvaluator.truthy_conditionals?(conditionals, context, entity) }
+
+		context 'when no conditionals are assigned' do
+			let(:conditionals){{}}
+			it { result.must_equal true }	
+		end
+
+		context 'when if conditionals return true' do
+			context 'when unless conditionals return false' do
+				let(:conditionals){{:if => [true, true], :unless => [false, false]}}
+				it { result.must_equal true }
+			end
+
+			context 'when one unless conditionals returns true' do
+				let(:conditionals){{:if => [true, true], :unless => [true, false]}}
+				it { result.must_equal false }
+			end
+		end
+
+		context 'when one if conditional returns false' do
+			let(:conditionals){{:if => [false, true], :unless => [false, false]}}
+			it { result.must_equal false }
+		end
+	end
+
 end
