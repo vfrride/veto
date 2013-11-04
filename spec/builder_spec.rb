@@ -24,7 +24,7 @@ describe Veto::Builder do
 	end
 
 	describe '#with_options' do
-		it 'adds conditional list block to context list' do
+		it 'adds condition list block to context list' do
 			list.send(:items).must_be_empty
 			builder.with_options
 			list.send(:items).wont_be_empty
@@ -36,11 +36,28 @@ describe Veto::Builder do
 				self.must_be_instance_of Veto::Builder
 			end
 		end
+
+		it 'build list by chaining builders' do
+			builder.with_options do
+				with_options do
+					with_options do
+					end
+				end
+			end
+			list_items = list.send(:items)
+			list_items.size.must_equal 1
+
+			list2_items = list_items[0].send(:items)
+			list2_items.size.must_equal 1
+
+			list3_items = list2_items[0].send(:items)
+			list3_items.size.must_equal 1
+		end
  	end
 
  	describe '#validates' do
  		it 'adds validators to validation list' do
- 			builder.validates :first_name, :presence => true, 
+ 			builder.validates :first_name, :integer => true, 
  							  :exact_length => {:with => 5, :if => :good? },
  							  :not_null => true,
  							  :if => 'good',

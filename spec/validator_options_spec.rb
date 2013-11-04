@@ -1,11 +1,11 @@
 require 'spec_helper'
 require 'veto/validates_options'
 
-describe Veto::ValidatesOptions::ValidatorOptions do
-	let(:type){ :presence }
+describe Veto::Validates::ValidatesOptions::CheckerOptions do
+	let(:type){ :integer }
 	let(:attribute) {:first_name}
 	let(:options){ {} }
-	let(:config){ Veto::ValidatesOptions::ValidatorOptions.new(type, attribute, options) }
+	let(:config){ Veto::Validates::ValidatesOptions::CheckerOptions.new(type, attribute, options) }
 	
 	describe 'options' do
 		context 'when options true' do

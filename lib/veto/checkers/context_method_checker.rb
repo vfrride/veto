@@ -1,5 +1,5 @@
 module Veto
-	class ContextMethodValidator
+	class ContextMethodChecker
 		attr_reader :method_name
 
 		def initialize method_name

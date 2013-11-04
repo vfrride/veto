@@ -1,13 +1,21 @@
 require 'veto/errors'
+require 'veto/exceptions'
 require 'veto/blocks/list_block'
 require 'veto/builder'
-require 'veto/exceptions'
 
 module Veto
-	class Base
-		class << self
-			def with_options *args
-				builder.with_options(*args)
+	module Validator
+		def self.included(base)
+			base.extend ClassMethods
+		end
+
+		module ClassMethods
+			def validator_list
+				@validator_list ||= ::Veto::ListBlock.new
+			end
+
+			def with_options *args, &block
+				builder.with_options(*args, &block)
 			end
 
 			def validates *args
@@ -16,10 +24,6 @@ module Veto
 
 			def validate *args
 				builder.validate(*args)
-			end
-
-			def validator_list
-				@validator_list ||= ::Veto::ListBlock.new
 			end
 
 			def valid? entity
@@ -37,14 +41,20 @@ module Veto
 			end
 		end
 
-		attr_reader :entity
-
 		def initialize entity
 			@entity = entity
 		end
 
+		def entity
+			@entity
+		end
+
 		def errors
-			@errors ||= ::Veto::Errors.new
+			@errors || clear_errors
+		end
+
+		def clear_errors
+			@errors = ::Veto::Errors.new
 		end
 
 		def valid?
@@ -59,8 +69,13 @@ module Veto
 		private
 
 		def execute
-			@errors = ::Veto::Errors.new
+			clear_errors
 			self.class.validator_list.execute(self, entity)
+			populate_entity_errors
+		end
+
+		def populate_entity_errors
+			entity.errors = errors if entity.respond_to?(:errors=)
 		end
 	end
 end

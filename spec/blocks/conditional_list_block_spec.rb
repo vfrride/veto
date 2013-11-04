@@ -2,8 +2,8 @@ require 'spec_helper'
 require 'veto/blocks/conditional_list_block'
 
 describe Veto::ConditionalListBlock do
-	let(:conditional_proc) { Proc.new{true} }
-	let(:list) { Veto::ConditionalListBlock.new(conditional_proc) }
+	let(:condition_proc) { Proc.new{true} }
+	let(:list) { Veto::ConditionalListBlock.new(condition_proc) }
 
 	describe '#add' do
 		it 'adds item to block' do
@@ -16,7 +16,7 @@ describe Veto::ConditionalListBlock do
 
 	describe '#execute' do
 		context 'when condition is truthy' do
-			let(:conditional_proc) { Proc.new{true} }
+			let(:condition_proc) { Proc.new{true} }
 
 			it 'delegates method call to each item in list' do
 				item1 = Object.new
@@ -32,7 +32,7 @@ describe Veto::ConditionalListBlock do
 		end
 
 		context 'when condition is falsey' do
-			let(:conditional_proc) { Proc.new{false } }
+			let(:condition_proc) { Proc.new{false } }
 
 			it 'delegates method call to each item in list' do
 				item1 = Object.new

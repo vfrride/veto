@@ -1,5 +1,5 @@
 module Veto
-	class Validator
+	class Checker
 		def initialize attribute, options={}
 			@attribute = attribute
 			@options = options

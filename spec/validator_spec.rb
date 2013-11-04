@@ -1,18 +1,19 @@
 require 'spec_helper'
-require 'veto/base'
+require 'veto/validator'
 
-describe Veto::Base do
+describe Veto::Validator do
 	let(:entity){ stub }
-	let(:validator) { Veto::Base.new(stub) } 
+	let(:validator_class) { Class.new{ include Veto::Validator } }
+	let(:validator) { validator_class.new(entity) } 
 
 	describe '::with_options' do
 		let(:builder){stub}
 		let(:args){stub}
 
 		it 'delegates method to builder' do
-			Veto::Base.expects(:builder).returns(builder)
+			validator_class.expects(:builder).returns(builder)
 			builder.expects(:with_options).with(args)
-			Veto::Base.with_options(args)
+			validator_class.with_options(args)
 		end
 	end
 
@@ -21,9 +22,9 @@ describe Veto::Base do
 		let(:args){stub}
 
 		it 'delegates method to builder' do
-			Veto::Base.expects(:builder).returns(builder)
+			validator_class.expects(:builder).returns(builder)
 			builder.expects(:validates).with(args)
-			Veto::Base.validates(args)
+			validator_class.validates(args)
 		end
 	end
 
@@ -32,9 +33,9 @@ describe Veto::Base do
 		let(:args){stub}
 
 		it 'delegates method to builder' do
-			Veto::Base.expects(:builder).returns(builder)
+			validator_class.expects(:builder).returns(builder)
 			builder.expects(:validate).with(args)
-			Veto::Base.validate(args)
+			validator_class.validate(args)
 		end
 	end
 
@@ -43,17 +44,17 @@ describe Veto::Base do
 
 	describe '::valid?' do
 		it 'initializes new instance and delegates to instance method' do
-			Veto::Base.expects(:new).with(entity).returns(entity)
+			validator_class.expects(:new).with(entity).returns(entity)
 			entity.expects(:valid?)
-			Veto::Base.valid?(entity)
+			validator_class.valid?(entity)
 		end
 	end
 
 	describe '::validate!' do
 		it 'initializes new instance and delegates to instance method' do
-			Veto::Base.expects(:new).with(entity).returns(entity)
+			validator_class.expects(:new).with(entity).returns(entity)
 			entity.expects(:validate!)
-			Veto::Base.validate!(entity)
+			validator_class.validate!(entity)
 		end
 	end
 
@@ -65,7 +66,7 @@ describe Veto::Base do
 
 	describe '::builder' do
 		it 'is private method' do
-			proc{Veto::Base.builder}.must_raise NoMethodError
+			proc{validator_class.builder}.must_raise NoMethodError
 		end
 	end
 
