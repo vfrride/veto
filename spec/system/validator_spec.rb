@@ -6,46 +6,28 @@ describe Veto do
 	let(:validator_class) { Class.new{ include Veto::Validator } }
 	let(:validator) { validator_class.new(person) }
 
-	describe 'validate conditions' do
+	describe 'with_options conditions' do
 		context 'when conditions pass' do
 			let(:validator_class) do
 				klass = Class.new{
 					include Veto::Validator
 
-					validate :create_errors, :if => true
+					with_options :if => true do
+						validate :create_errors
+					end
 
 					def create_errors
 						errors.add(:base, "error")
 					end
-				}			
-			end
+				}
+			end	
 
-			it 'performs validation using method' do
+			it 'performs validations within block' do
 				validator.valid?.must_equal false
 				validator.errors.full_messages.must_equal ['base error']
 			end
 		end
 
-		context 'when conditions fail' do
-			let(:validator_class) do
-				klass = Class.new{
-					include Veto::Validator
-
-					validate :create_errors, :if => false
-
-					def create_errors
-						errors.add(:base, "error")
-					end
-				}			
-			end
-
-			it 'skips validations' do
-				validator.valid?.must_equal true
-			end
-		end
-	end
-
-	describe 'with_options conditions' do
 		context 'when conditions fail' do
 			let(:validator_class) do
 				klass = Class.new{
@@ -67,26 +49,7 @@ describe Veto do
 			end
 		end
 
-		context 'when conditions pass' do
-			let(:validator_class) do
-				klass = Class.new{
-					include Veto::Validator
 
-					with_options :if => true do
-						validate :create_errors
-					end
-
-					def create_errors
-						errors.add(:base, "error")
-					end
-				}
-			end	
-
-			it 'performs validations within block' do
-				validator.valid?.must_equal false
-				validator.errors.full_messages.must_equal ['base error']
-			end
-		end
 	end
 
 	describe 'validates conditions' do
@@ -145,7 +108,7 @@ describe Veto do
 			klass = Class.new{
 				include Veto::Validator
 
-				class EmailChecker < ::Veto::Checker
+				class EmailValidator < ::Veto::AttributeValidator
 					def validate entity, attribute, value, errors, options={}
 						unless value.to_s =~ /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i
 							errors.add(attribute, "is not a valid email address")

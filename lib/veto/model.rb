@@ -7,12 +7,12 @@ module Veto
 		end
 
 		module ClassMethods
-			def validates_with veto_checker
-				@validator = veto_checker
+			def validates_with veto_validator
+				@validator = veto_validator
 			end
 
 			def validator
-				@validator || raise(::Veto::CheckerNotAssigned, 'validator not assigned')
+				@validator || raise(::Veto::ValidatorNotAssigned, 'validator not assigned')
 			end
 		end
 

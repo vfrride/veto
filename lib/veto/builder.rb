@@ -1,49 +1,37 @@
-require 'veto/checker_factory'
 require 'veto/conditions'
-require 'veto/blocks/conditional_list_block'
-require 'veto/validates_options'
-require 'veto/checkers/context_method_checker'
 
 module Veto			
 	class Builder
-		attr_reader :context_list
+		attr_reader :context, :context_conditions
 
-		def initialize context_list, &block
-			@context_list = context_list
+		def initialize context, context_conditions={}, &block
+			@context = context
+			@context_conditions = context_conditions
 			instance_eval(&block) if block_given?
 		end
 
 		def with_options conditions={}, &block
-			list_block = new_condition_list(conditions)
-			context_list.add list_block
-			::Veto::Builder.new(list_block, &block)
+			context.with_options(merged_conditions(conditions), &block)
 		end
 
 		def validates attribute, options={}
-			vsopts = ::Veto::Validates::ValidatesOptions.new(attribute, options)
-			outer_list = new_condition_list(vsopts.conditions)
-			vsopts.each_checker_options do |vopts|
-				inner_list = new_condition_list(vopts.conditions)
-				validator = ::Veto::CheckerFactory.new_checker(vopts.type, vopts.attribute, vopts.options)
-				inner_list.add validator
-				outer_list.add inner_list
-			end
-			context_list.add outer_list
+			context.validates(attribute, merged_options(options))
 		end
 
-		def validate method_names, conditions={}
-			list = new_condition_list(conditions)
-			[*method_names].each do |method_name|
-				validator = ::Veto::ContextMethodChecker.new(method_name)
-				list.add validator
-			end
-			context_list.add list
+		def validate *method_names
+			conditions = method_names.last.is_a?(Hash) ? method_names.pop : {}
+			method_names.push merged_conditions(conditions)
+			context.validate(*method_names)
 		end
 
 		private
 
-		def new_condition_list conditions={}
-			::Veto::ConditionalListBlock.new(::Veto::Conditions.new(conditions))
+		def merged_options options
+			options.merge(merged_conditions(options))
+		end
+
+		def merged_conditions conditions={}
+			::Veto::Conditions.merge(context_conditions, conditions)
 		end
 	end
 end

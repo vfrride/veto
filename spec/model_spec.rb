@@ -33,7 +33,7 @@ describe Veto::Model do
 			before { entity_class.validates_with nil }
 
 			it 'raises error' do
-				proc{ entity_class.validator }.must_raise ::Veto::CheckerNotAssigned
+				proc{ entity_class.validator }.must_raise ::Veto::ValidatorNotAssigned
 			end
 		end
 	end

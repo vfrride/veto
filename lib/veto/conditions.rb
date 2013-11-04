@@ -1,44 +1,23 @@
 module Veto
 	class Conditions
-		def self.truthy? condition, context, entity
-			case condition
-			when String
-				!!entity.instance_eval(condition)
-			when Symbol
-				!!context.send(condition)
-			when Proc
-				!!condition.call(entity)
-			else
-				!!condition
+		CONDITION_KEYS = [:if, :unless].freeze
+
+		def self.reject hash={}
+			hash.reject{|k,v| CONDITION_KEYS.include?(k) }
+		end
+
+		def self.select hash={}
+			hash.select{|k,v| CONDITION_KEYS.include?(k) }
+		end
+
+		def self.merge dest_hash, source_hash
+			CONDITION_KEYS.inject({}) do |memo, key|
+				cond = []
+				cond << dest_hash[key]
+				cond << source_hash[key]
+				memo[key] = cond.flatten.compact
+				memo
 			end
-		end
-
-		def self.truthy_conditions? conditions, context, entity
-			return true if !conditions.key?(:if) && !conditions.key?(:unless)
-
-			[*conditions[:if]].each do |condition| 
-				return false unless truthy?(condition, context, entity) 
-			end
-
-			[*conditions[:unless]].each do |condition| 
-				return false if truthy?(condition, context, entity) 
-			end
-
-			true
-		end
-
-		attr_reader :conditions
-
-		def initialize conditions
-			@conditions = conditions
-		end
-
-		def call *args
-			truthy? *args
-		end
-
-		def truthy? context, entity
-			self.class.truthy_conditions?(conditions, context, entity)
 		end
 	end
 end

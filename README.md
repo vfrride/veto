@@ -280,7 +280,7 @@ Conditional statements can be assigned as an options hash to the `with_options` 
 
 ### Custom Validation
 
-Veto allows you to create your own custom validation methods and checkers as you require them.
+Veto allows you to create your own custom validation methods and validators as you require them.
 
 #### Custom Methods
 

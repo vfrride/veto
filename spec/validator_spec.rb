@@ -7,39 +7,20 @@ describe Veto::Validator do
 	let(:validator) { validator_class.new(entity) } 
 
 	describe '::with_options' do
-		let(:builder){stub}
-		let(:args){stub}
-
-		it 'delegates method to builder' do
-			validator_class.expects(:builder).returns(builder)
-			builder.expects(:with_options).with(args)
-			validator_class.with_options(args)
+		it 'returns new builder instance' do
+			conditions = stub
+			Veto::Builder.expects(:new).with(validator_class, conditions)
+			validator_class.with_options(conditions)
 		end
 	end
 
 	describe '::validates' do
-		let(:builder){stub}
-		let(:args){stub}
-
-		it 'delegates method to builder' do
-			validator_class.expects(:builder).returns(builder)
-			builder.expects(:validates).with(args)
-			validator_class.validates(args)
+		it 'adds multiple attribute_validators to validators' do
+			attribute_validator = stub
+			Veto::AttributeValidatorFactory.expects(:new_validator).returns(attribute_validator)
+			validator_class.expects(:validate_with).with(attribute_validator)
+			validator_class.validates :first_name, :presence => true
 		end
-	end
-
-	describe '::validate' do
-		let(:builder){stub}
-		let(:args){stub}
-
-		it 'delegates method to builder' do
-			validator_class.expects(:builder).returns(builder)
-			builder.expects(:validate).with(args)
-			validator_class.validate(args)
-		end
-	end
-
-	describe '::validator_list' do
 	end
 
 	describe '::valid?' do
@@ -58,15 +39,12 @@ describe Veto::Validator do
 		end
 	end
 
-	describe '::with_options' do
-	end
-
-	describe '::validates' do
-	end
-
-	describe '::builder' do
-		it 'is private method' do
-			proc{validator_class.builder}.must_raise NoMethodError
+	describe '::validate' do
+		it 'adds custom methods validators to validators' do
+			custom_method_validator = stub
+			Veto::CustomMethodValidator.expects(:new).returns(custom_method_validator).twice
+			validator_class.expects(:validate_with).with(custom_method_validator).twice
+			validator_class.validate :meth1, :meth2
 		end
 	end
 
