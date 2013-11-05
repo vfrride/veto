@@ -1,7 +1,6 @@
 # Veto
 
-Veto provides solid, lightweight, validation for plain old ruby objects, using a familiar DSL.
-
+Veto provides lightweight validation for plain old ruby objects, using a familiar DSL.
 
 Tested on the following Rubies: MRI 2.0.0.
 
@@ -20,59 +19,88 @@ Or install it yourself as:
     $ gem install veto
 
 ## Basic Usage
+### Class Method Usage
 
-Validate an object by passing it to the validator.
+The simplest way to validate an entity is to pass it directly to one of the validator's class methods.
 
-    person = Person.new
-    validator = PersonValidator.valid?(person) # => false
-    
-    
-If the entity being validated has an `errors` accessor defined, the validator will attempt to assign an errors object on the entity each time it is validated.
+#### valid?
 
-    person = Person.new
-    person.errors # => nil
-    validator = PersonValidator.valid?(person) # => false
-    person.errors.full_messages # => ["first name is not present", "last name is not present"]
-    
-Use the validate bang method for strict validations.
+Validate an entity by passing it to the `valid?` method.
 
     person = Person.new
-    validator = PersonValidator.validate!(person) # => Veto::InvalidEntity, ["first name is not present", "..."]
+    PersonValidator.valid?(person) # => false
+         
+#### validate!
 
-### Validator Instances
+For strict validations, pass the entity to the `validate!` method instead. This method will raise an exception if the validation fails.
+    
+    person = Person.new
+    PersonValidator.validate!(person) # => Veto::InvalidEntity, ["first name is not present", "..."]    
+    
+### Instance Method Usage
+        
+Using a validator instance is also simple, and has some advantages in regards to validation errors (more below). The validation methods available on a validator instance are the same as the class methods.    
 
-You can perform validations just as easily using a validator instance. This is convenient when you need to obtain errors directly from the validator.
+#### initialization
+
+When creating a validator instance, the entity you wish to be validated needs to be passed as an argument to the `new` method.
+
+    person = Person.new
+    validator = PersonValidator.new(person)
+    
+#### valid?
+
+Calling the `valid?` method on a validator instance will return a boolean response, although the method does not receive  arguments.
 
     person = Person.new
     validator = PersonValidator.new(person)
     validator.valid? # => false
-    validator.errors.full_messages # => ["first name is not present", "last name is not present"]
-    
-    
-### Validator Model Mixin
+   
+#### validate!
 
-In cases where an object will only ever be validated by a single validator, a validator can be embedded directly inside the model using the Veto.model mixin. The mixin will add `valid?`, `validate!` and `errors` methods to your object, and delegate these methods to the validator.
+For strict validations…
+    
+    person = Person.new
+    validator = PersonValidator.new(person)
+    validator.validate! # => Veto::InvalidEntity, ["first name is not present", "..."]
+
+#### errors
+
+The `errors` method will return an errors object. The errors object will contain the error messages generated during the most recent validation.
+
+
+    person = Person.new
+    validator = PersonValidator.new(person)
+    validator.errors.full_messages # => []
+    
+    validator.valid? # => false
+    validator.errors.full_messages # => ["first name is not present", "..."]
+
+### Errors on Entity
+
+Whether you're validating via validator class methods or a validator instance, if the entity being validated has an `errors` attr_accessor defined, the validator will attempt to populate the entity with an errors object each time it is validated.
 
     class Person
-        include Veto.model(PersonValidator)
+        attr_accessor :errors, :first_name, :last_name, ...
     end
+
+    person = Person.new
+    person.errors # => nil
     
-    person.new
-    person.valid? # => false
-    person.errors.full_messages # => ["first name is not present", "last name is not present"]
-    person.validate! # => Veto::InvalidEntity, ["first name is not present", "..."]
+    PersonValidator.valid?(person) # => false
+    person.errors.full_messages # => ["first name is not present", "..."]
 
 ## Configuration
 
-Create a new validator by including the Veto validator module in your validator class.
+Create a new validator by including the Veto validator module in your class.
 
     class PersonValidator
         include Veto.validator
     end
 
-### Validation Helpers
+## Validation Helpers
 
-#### Presence
+### Presence
 Likely the most used validation helper, the `presence` helper will check that the specified object attribute is not blank. Object attributes that are nil, or respond to `empty?` and return true, are considered blank. All other values will be considered present. This means that `presence` helper is safe to use for boolean attributes, where you need to ensure that the attribute value can be true or false, but not nil.
 
     class PersonValidator
@@ -81,7 +109,7 @@ Likely the most used validation helper, the `presence` helper will check that th
         validates :first_name, :presence => true
     end
 
-#### Not Null
+### Not Null
 Similar to the `presence` helper, the `not_null` helper will strictly check that the specified attribute is not null/nil. Any attribute where `nil?` returns true is considered null. Other values, including blank strings and empty arrays, are all considered not-null and will pass.
 
     class PersonValidator
@@ -90,7 +118,7 @@ Similar to the `presence` helper, the `not_null` helper will strictly check that
         validates :first_name, :not_null => true
     end
     
-#### Format
+### Format
 The `format` helper ensures that the string value of an attribute matches the specified regular expression. It's useful for ensuring that email addresses, URLs, UPC codes, ISBN codes, and the like, are in a specific format. It can also be used to check that only certain characters are used in the string.
 
     class PersonValidator
@@ -104,7 +132,7 @@ The `format` helper ensures that the string value of an attribute matches the sp
   
     end
     
-#### Inclusion
+### Inclusion
 This helper ensures that an attribute is included in a specified set, or range of values.
 
     class PersonValidator
@@ -117,7 +145,7 @@ This helper ensures that an attribute is included in a specified set, or range o
         validates :role, :inclusion => { :in => [:webmaster, :admin, :user] }
     end
     
-#### Integer
+### Integer
 This helper checks that the specified attribute can be a valid integer. For example, the values `123` and `'123'` will both pass, but `123.4` and `'123.4'` will both fail.
 
     class PersonValidator
@@ -126,7 +154,7 @@ This helper checks that the specified attribute can be a valid integer. For exam
         validates :age, :integer => true    
     end
 
-#### Numeric
+### Numeric
 This helper checks that the specified attribute can be a valid float. For example, the values `123.4` and `'123.4'` will both pass.
 
     class PersonValidator
@@ -135,7 +163,7 @@ This helper checks that the specified attribute can be a valid float. For exampl
         validates :height, :numeric => true    
     end
 
-#### Exact Length
+### Exact Length
 This helper checks that an attribute is an exact length in characters.
 
     class BookValidator
@@ -148,7 +176,7 @@ This helper checks that an attribute is an exact length in characters.
         validates :isbn, :exact_length => { :with => 17 }
     end
 
-#### Max Length
+### Max Length
 This helper checks that an attribute does not exceed a given maximum character length.
 
     class PersonValidator
@@ -161,7 +189,7 @@ This helper checks that an attribute does not exceed a given maximum character l
         validates :first_name, :max_length => { :with => 10 }
     end
 
-#### Min Length
+### Min Length
 This helper checks that an attribute is longer than a given minimum character length.
 
     class PersonValidator
@@ -174,7 +202,7 @@ This helper checks that an attribute is longer than a given minimum character le
         validates :first_name, :min_length => { :with => 3 }
     end
 
-#### Length Range
+### Length Range
 This helper checks that the length of an attribute falls within a given range, or other object that responds to `include?`
 
     class PersonValidator
@@ -187,8 +215,8 @@ This helper checks that the length of an attribute falls within a given range, o
         validates :first_name, :length_range => { :in => 3..10 } 
     end
 
-### Common Validation Options
-#### Message
+## Common Validation Options
+### message
 
 The `:message` option allows you to specify the error message that will be added to the errors object when validation fails.
 
@@ -197,12 +225,25 @@ The `:message` option allows you to specify the error message that will be added
         
         validates :first_name, :presence => {:message => "has not been set"}
     end
+    
+### on
 
-### Conditional Validation
+The `:on` options allows you to specify which attribute name a given validation error should be applied to.
 
-You may want a validation to be run only when a certain condition is satisfied. To accomplish this, you can pass `if` and `unless` conditional statements to the validators. Passing an `:if` condition to a validator will ensure that the validation is **only** run if the condition returns true. Passing an `:unless` condition to a validator will ensure that the validation is **always** run unless the condition returns true.
+    class PersonValidator
+        include Veto.validator
+        
+        validates :first_name, :presence => {:on => :last_name}
+    end
+    
+    person = Person.new
+    PersonValidator.validate!(person) # => Veto::InvalidEntity, ["last_name is not present""]   
 
-#### Using a symbol with :if and :unless
+## Conditional Validation
+
+You may want a validation to run only when a specified condition is satisfied. To accomplish this, you can pass `:if` and `:unless` options to the validators. Passing an `:if` condition to a validator will ensure that the validation is **only** run if the condition returns true. Passing an `:unless` condition to a validator will ensure that the validation is **always** run unless the condition returns true.
+
+### Using a symbol with :if and :unless
 
 Passing a symbol to the :if or :unless option will call the coorespondition validator method upon validation.
 
@@ -216,9 +257,9 @@ Passing a symbol to the :if or :unless option will call the coorespondition vali
         end
     end
     
-#### Using a proc with :if and :unless
+### Using a proc with :if and :unless
 
-A Proc object passed to an :if or :unless condition will be run during validation. The Proc object will receive the object being validated as a single argument.
+A Proc object passed to an :if or :unless condition will be run during validation. The Proc object will receive the entity being validated as an argument.
 
     class PersonValidator
         include Veto.validator
@@ -226,9 +267,9 @@ A Proc object passed to an :if or :unless condition will be run during validatio
         validates :last_name, :presence => true, :unless => Proc.new{|person| person.first_name.nil? }
     end
 
-#### Using a string with :if and :unless
+### Using a string with :if and :unless
 
-A string passed to the :if or :unless option will be evaluated in the context of the object being validated.
+A string passed to the :if or :unless option will be evaluated in the context of the entity being validated.
 
     class PersonValidator
         include Veto.validator
@@ -236,9 +277,9 @@ A string passed to the :if or :unless option will be evaluated in the context of
         validates :last_name, :presence => true, :unless => "first_name.nil?"
     end
 
-#### Grouping Conditional Valdiations
+### Grouping Conditional Valdiations
 
-To conditionally run a block of validations, use the `with_options` method.
+To conditionally run a block of validations, nest them inside a `with_options` method.
 
     class PersonValidator
         include Veto.validator
@@ -249,11 +290,11 @@ To conditionally run a block of validations, use the `with_options` method.
         end
         
         def person_is_admin?
-            ...
+            entity.is_admin
         end
     end
     
-#### Combining Conditional Statements
+### Combining Conditional Statements
 
 You can use multiple `:if` and `:unless` statements together simultaniously in an array. The condition will pass only if all `:if` conditionals return true, and no `:unless` statements return true.
 
@@ -265,7 +306,7 @@ You can use multiple `:if` and `:unless` statements together simultaniously in a
                                :unless => ["nameless?", :skip_name_validation?]
     end
 
-#### Conditional Locations
+### Conditional Locations
 
 Conditional statements can be assigned as an options hash to the `with_options` method, the `validates` method, or an an options hash for an individual validator in the `validates` method.
 
@@ -278,11 +319,11 @@ Conditional statements can be assigned as an options hash to the `with_options` 
         end
     end
 
-### Custom Validation
+## Custom Validation
 
-Veto allows you to create your own custom validation methods and validators as you require them.
+Veto provides a few ways to create your own validators and validation methods, when your needs are too complex for the built-in validation syntax.
 
-#### Custom Methods
+### Custom Methods
 
 You can use a method to check the current state of the entity, and add custom error messages to the errors object if the entity is invalid. Register these methods using the `validate` method. Multiple validation methods can be assigned at once, as well as a hash of condition options included as the last method argument.
 
@@ -304,7 +345,77 @@ You can use a method to check the current state of the entity, and add custom er
         end
     end
 
-Create a method inside your validator that checks the current state of the entity, and adds appropriate errors if it is invalid. Next, register this method using the `validates` method
+### Custom Attribute Validator
+
+Much like the built-in `presence`, `max_length`, and `format` attribute validators, you can create your own custom validator, and refer to it using the `validates` method. Custom attribute validators must extend the Veto::AttributeValidator class, implement a `validate` method which receives 5 arguments: entity, attribute, value, errors, and options.
+
+    class PersonValidator
+        include Veto.validator
+        
+        class EmailValidator < ::Veto::AttributeValidator
+            def validate(entity, attribute, value, errors, options={})
+                unless value.to_s =~ /^([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})$/i
+                    errors.add(attribute, "is not a valid email address")
+                end
+            end
+        end
+        
+        validates :electronic_address, :email => true
+    end
+    
+## Working With Errors
+
+Veto's simple errors object is a subclass of hash, with a few additional methods for inspecting the collection of error messages.
+    
+#### errors.add
+Adds a method to the errors object.
+
+    errors.add(:first_name, "is not present")
+    
+#### errors.empty?
+Returns a boolean value representing if the errors object is empty or not.
+
+    errors.empty? # => true
+    errors.add(:first_name, "is not present")
+    errors.empty? # => false
+
+#### errors.count
+Returns the number of errors present in the errors object.
+
+    errors.count # => 0
+    errors.add(:first_name, "is not present")
+    errors.count # => 1
+
+#### errors.on
+Returns a list of error message for a given attribute.
+
+    errors.on(:first_name) # => nil
+    errors.add(:first_name, "is not present")
+    errors.add(:first_name, "is too short")
+    errors.on(:first_name) # => ["is not present", "is too short"]
+
+#### errors.full_messages
+Returns a list of full error messages.
+
+    errors.add(:first_name, "is not present")
+    errors.add(:last_name, "is too short")
+    errors.full_messages # => ["first_name is not present", "last_name is too short"]
+
+
+## Veto Model
+
+If your entities and validators have a strict 1-to-1 relationship (an entity will only ever be validated by a single validator, and a validator will only ever validate a single entity), it might make sense to embed the validator directly inside the entity.
+
+The Veto Model extension does exactly this, associating your entity with a specified validator, and adding 3 additional methods to your entity: `valid?`, `validate!`, and `errors`
+
+    class Person
+        include Veto.model(PersonValidator)
+    end
+    
+    person.new
+    person.valid? # => false
+    person.errors.full_messages # => ["first name is not present", "last name is not present"]
+    person.validate! # => Veto::InvalidEntity, ["first name is not present", "..."]
 
 ## Contributing
 
