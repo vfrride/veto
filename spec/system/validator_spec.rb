@@ -48,8 +48,6 @@ describe Veto do
 				validator.errors.must_be_empty
 			end
 		end
-
-
 	end
 
 	describe 'validates conditions' do
