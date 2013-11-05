@@ -1,14 +1,8 @@
-#Veto is a lightweight gem that provides familiar validations for plain old ruby objects.
-
-
 require 'veto/version'
 require 'veto/model'
 require 'veto/validator'
 
 module Veto
-
-
-
 	def self.model validator
 		mod = Module.new
 		mod.define_singleton_method :included do |base|

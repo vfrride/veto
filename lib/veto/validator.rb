@@ -1,10 +1,6 @@
 require 'veto/errors'
 require 'veto/exceptions'
 require 'veto/builder'
-require 'veto/conditions'
-require 'veto/attribute_validator_factory'
-require 'veto/validators/custom_method_validator'
-require 'veto/validator_options'
 
 module Veto
 	module Validator
@@ -13,31 +9,20 @@ module Veto
 		end
 
 		module ClassMethods
-			def with_options conditions={}, &block
-				::Veto::Builder.new(self).with_options(conditions, &block)
+			def with_options *args, &block
+				builder.with_options(*args, &block)
 			end
 
-			def validates attribute, options={}
-				::Veto::Builder.new(self, conditions, &block)
+			def validates *args
+				builder.validates(*args)
 			end
 
-			# def validates attribute, options={}
-			# 	::Veto::Conditions.reject(options).each do |type, validator_opts|
-			# 		validator_options = ::Veto::ValidatorOptions.parse(validator_opts)
-			# 		conditions = ::Veto::Conditions.merge(options, validator_options)
-			# 		validate_with ::Veto::AttributeValidatorFactory.new_validator(type, attribute, validator_options.merge(conditions))
-			# 	end
-			# end		
+			def validate *args
+				builder.validate(*args)
+			end
 
-			# def validate *method_names
-			# 	conditions = method_names.last.is_a?(Hash) ? method_names.pop : {}
-			# 	[*method_names].each do |method_name|
-			# 		validate_with ::Veto::CustomMethodValidator.new(method_name, conditions)
-			# 	end
-			# end		
-
-			def validate_with validator
-				validators.push validator
+			def validate_with *objs
+				validators.concat objs.flatten
 			end	
 
 			def validators
@@ -50,6 +35,12 @@ module Veto
 
 			def validate! entity
 				new(entity).validate!
+			end
+
+			private
+
+			def builder
+				@builder ||= ::Veto::Builder.new(self)
 			end
 		end
 

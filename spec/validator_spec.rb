@@ -6,20 +6,56 @@ describe Veto::Validator do
 	let(:validator_class) { Class.new{ include Veto::Validator } }
 	let(:validator) { validator_class.new(entity) } 
 
+	describe '::builder' do
+		it 'returns builder' do
+			validator_class.send(:builder).must_be_instance_of Veto::Builder
+		end
+	end
+
 	describe '::with_options' do
-		it 'returns new builder instance' do
-			conditions = stub
-			Veto::Builder.expects(:new).with(validator_class, conditions)
-			validator_class.with_options(conditions)
+		it 'delegates to builder' do
+			builder = stub
+			validator_class.expects(:builder).returns(builder)
+			builder.expects(:with_options).with('args')
+			validator_class.with_options('args')
 		end
 	end
 
 	describe '::validates' do
-		it 'adds multiple attribute_validators to validators' do
-			attribute_validator = stub
-			Veto::AttributeValidatorFactory.expects(:new_validator).returns(attribute_validator)
-			validator_class.expects(:validate_with).with(attribute_validator)
-			validator_class.validates :first_name, :presence => true
+		it 'delegates to builder' do
+			builder = stub
+			validator_class.expects(:builder).returns(builder)
+			builder.expects(:validates).with('args')
+			validator_class.validates('args')
+		end	
+	end
+
+	describe '::validate' do
+		it 'delegates to builder' do
+			builder = stub
+			validator_class.expects(:builder).returns(builder)
+			builder.expects(:validate).with('args')
+			validator_class.validate('args')
+		end	
+	end
+
+	describe '::validate_with' do
+		it 'adds validator to validators array' do
+			validator = stub
+			validator_class.validate_with validator
+			validator_class.validators.must_equal [validator]
+		end
+
+		it 'adds validators to validators array' do
+			validator = stub
+			validator_class.validate_with [validator, validator]
+			validator_class.validators.must_equal [validator, validator]
+		end
+	end
+
+	describe '::validators' do
+		it 'returns validators list' do
+			validator_class.validators.must_equal []
 		end
 	end
 
@@ -36,15 +72,6 @@ describe Veto::Validator do
 			validator_class.expects(:new).with(entity).returns(entity)
 			entity.expects(:validate!)
 			validator_class.validate!(entity)
-		end
-	end
-
-	describe '::validate' do
-		it 'adds custom methods validators to validators' do
-			custom_method_validator = stub
-			Veto::CustomMethodValidator.expects(:new).returns(custom_method_validator).twice
-			validator_class.expects(:validate_with).with(custom_method_validator).twice
-			validator_class.validate :meth1, :meth2
 		end
 	end
 
