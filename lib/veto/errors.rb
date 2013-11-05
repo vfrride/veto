@@ -1,13 +1,11 @@
 module Veto
 	class Errors < ::Hash
-		ATTRIBUTE_JOINER = ' and '.freeze
-
-		def add(att, msg)
-			fetch(att){self[att] = []} << msg
+		def add attribute, message
+			fetch(attribute){self[attribute] = []} << message
 		end
 
 		def count
-			values.inject(0){|m, v| m + v.length}
+			values.inject(0){|memo, value| memo + value.length}
 		end
 
 		def empty?
@@ -15,16 +13,16 @@ module Veto
 		end
 
 		def full_messages
-			inject([]) do |m, kv| 
-				att, errors = *kv
-				errors.each {|e| m << "#{att} #{e}"}
-				m
+			inject([]) do |memo, kv| 
+				attribute, errors = *kv
+				errors.each {|e| memo << "#{attribute} #{e}"}
+				memo
 			end
 		end
 
-		def on(att)
-			if v = fetch(att, nil) and !v.empty?
-				v
+		def on(attribute)
+			if value = fetch(attribute, nil) and !value.empty?
+				value
 			end
 		end
 	end

@@ -53,11 +53,11 @@ module Veto
 		end
 
 		def errors
-			@errors || clear_errors
+			@errors ||= ::Veto::Errors.new
 		end
 
 		def clear_errors
-			@errors = ::Veto::Errors.new
+			@errors = nil
 		end
 
 		def valid?
