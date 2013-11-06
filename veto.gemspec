@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["erik.lott@kodio.com"]
   spec.description   = %q{Lightweight validations for plain ruby objects}
   spec.summary       = %q{Validations for plain old ruby objects}
-  spec.homepage      = ""
+  spec.homepage      = "http://github.com/kodio/veto"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)

@@ -21,7 +21,7 @@ $ bundle
 Or install it yourself as:
 
 ```
-    $ gem install veto
+$ gem install veto
 ```
 ## Usage
 
