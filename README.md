@@ -18,7 +18,41 @@ Or install it yourself as:
 
     $ gem install veto
 
-## Basic Usage
+## Usage
+
+    # Create a validator
+    class PersonValidator
+        include Veto.validator
+        
+        validate :name, :presence => true
+        validate :age, :inclusion => 0..100
+    end
+    
+    # Create an entity
+    class Person
+        attr_reader :name, :age, :errors
+    end
+    
+    person = Person.new
+    
+    # Validation using class methods
+    
+    PersonValidator.valid?(person) # => false
+    PersonValidator.validate!(person) # => # => Veto::InvalidEntity, ["name is not present", "..."]  
+
+    # Validation using validator instance
+    
+    validator = PersonValidator.new(person)
+    validator.valid? # => false
+    validator.validate! # => # => Veto::InvalidEntity, ["name is not present", "..."]  
+    validator.errors.full_messages # => ["first name is not present", "..."]
+
+    # If entity has errors attr_accessor, errors will be passed to the entity
+    
+    person.errors # => nil
+    PersonValidator.valid?(person) # => false
+    person.errors.full_messages # => ["first name is not present", "..."]
+
 ### Class Method Usage
 
 The simplest way to validate an entity is to pass it directly to one of the validator's class methods.
