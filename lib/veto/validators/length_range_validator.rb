@@ -5,7 +5,7 @@ module Veto
 		def validate entity, attribute, value, errors, options={}
 			range = options.fetch(:in)
 			inclusion_method = range.respond_to?(:cover?) ? :cover? : :include?
-			message = options.fetch(:message, "is too short or too long")
+			message = options.fetch(:message, :length_range)
 			on = options.fetch(:on, attribute)
 			
 			if value.nil? || !range.send(inclusion_method, value.length)

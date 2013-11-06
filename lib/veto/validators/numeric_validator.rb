@@ -3,7 +3,7 @@ require 'veto/validators/attribute_validator'
 module Veto
 	class NumericValidator < AttributeValidator
 		def validate entity, attribute, value, errors, options={}
-			message = options.fetch(:message, "is not a number")
+			message = options.fetch(:message, :numeric)
 			on = options.fetch(:on, attribute)
 			
 			begin

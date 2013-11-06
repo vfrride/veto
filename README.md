@@ -90,14 +90,6 @@ Whether you're validating via validator class methods or a validator instance, i
     PersonValidator.valid?(person) # => false
     person.errors.full_messages # => ["first name is not present", "..."]
 
-## Configuration
-
-Create a new validator by including the Veto validator module in your class.
-
-    class PersonValidator
-        include Veto.validator
-    end
-
 ## Validation Helpers
 
 ### Presence
@@ -245,7 +237,7 @@ You may want a validation to run only when a specified condition is satisfied. T
 
 ### Using a symbol with :if and :unless
 
-Passing a symbol to the :if or :unless option will call the coorespondition validator method upon validation.
+Passing a symbol to the :if or :unless option will call the corresponding validator method upon validation.
 
     class PersonValidator
         include Veto.validator
@@ -277,7 +269,7 @@ A string passed to the :if or :unless option will be evaluated in the context of
         validates :last_name, :presence => true, :unless => "first_name.nil?"
     end
 
-### Grouping Conditional Valdiations
+### Grouping Conditional Validations
 
 To conditionally run a block of validations, nest them inside a `with_options` method.
 
@@ -296,7 +288,7 @@ To conditionally run a block of validations, nest them inside a `with_options` m
     
 ### Combining Conditional Statements
 
-You can use multiple `:if` and `:unless` statements together simultaniously in an array. The condition will pass only if all `:if` conditionals return true, and no `:unless` statements return true.
+You can use multiple `:if` and `:unless` statements together simultaneously in an array. The condition will pass only if all `:if` conditionals return true, and no `:unless` statements return true.
 
     class PersonValidator
         include Veto.validator
@@ -362,6 +354,41 @@ Much like the built-in `presence`, `max_length`, and `format` attribute validato
         
         validates :electronic_address, :email => true
     end
+    
+## Configuration
+
+Call the Veto `configure` method to yield the configuration object.
+
+    Veto.configure do |c|
+        ...
+    end
+   
+### Messages
+
+The `message` configuration object, allows you to change the default error message produced by each attribute validator. The message must be in the form of a lambda or Proc, and may or may not receive an argument. Use the example below for reference when customizing messages.
+
+    Veto.configure do |c|
+        c.message.set(:exact_length, lambda{|exact| "is not #{exact} characters"})
+        c.message.set(:format, lambda{"is not valid"})
+        c.message.set(:inclusion, lambda{|set| "is not in set: #{set.inspect}"})
+        c.message.set(:integer, lambda{"is not a number"})
+        c.message.set(:length_range, lambda{"is too short or too long"})
+        c.message.set(:max_length, lambda{|max| "is longer than #{max} characters"})
+        c.message.set(:min_length, lambda{|min| "is shorter than #{min} characters"})
+        c.message.set(:not_null, lambda{"is not present"})
+        c.message.set(:numeric, lambda{"is not a number"})
+        c.message.set(:presence, lambda{"is not present"})
+    end
+
+
+If you would like to change the default message produced by a specified validator, you can do so using through the configuration object.
+
+Create a new validator by including the Veto validator module in your class.
+
+    class PersonValidator
+        include Veto.validator
+    end
+    
     
 ## Working With Errors
 

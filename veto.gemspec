@@ -8,7 +8,7 @@ Gem::Specification.new do |spec|
   spec.version       = Veto::VERSION
   spec.authors       = ["Erik Lott"]
   spec.email         = ["erik.lott@kodio.com"]
-  spec.description   = %q{Validations for plain ruby objects}
+  spec.description   = %q{Lightweight validations for plain ruby objects}
   spec.summary       = %q{Validations for plain old ruby objects}
   spec.homepage      = ""
   spec.license       = "MIT"

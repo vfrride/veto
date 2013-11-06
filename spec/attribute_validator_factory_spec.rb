@@ -1,12 +1,15 @@
 require 'spec_helper'
 require 'veto/attribute_validator_factory'
+require 'veto'
 
 describe Veto::AttributeValidatorFactory do
 	let(:factory) { Veto::AttributeValidatorFactory }
 	let(:type) { :format }
 
 	describe '::new_validator' do
-		let(:result) { factory.new_validator(type, stub, stub) }
+		let(:attribute){ :first_name }
+		let(:options) { {} }
+		let(:result) { factory.new_validator(type, attribute, options) }
 	
 		context 'when type is exact_length' do
 			let(:type) { :exact_length }

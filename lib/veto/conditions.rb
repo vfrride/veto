@@ -11,12 +11,12 @@ module Veto
 		end
 
 		def self.merge dest_hash, source_hash
-			CONDITION_KEYS.inject({}) do |memo, key|
-				cond = []
-				cond << dest_hash[key]
-				cond << source_hash[key]
-				memo[key] = cond.flatten.compact
-				memo
+			CONDITION_KEYS.inject({}) do |m, k|
+				c = []
+				c << dest_hash[k]
+				c << source_hash[k]
+				m[k] = c.flatten.compact
+				m
 			end
 		end
 	end

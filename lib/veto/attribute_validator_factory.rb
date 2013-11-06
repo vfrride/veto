@@ -12,11 +12,15 @@ require 'veto/validators/presence_validator'
 module Veto
 	class AttributeValidatorFactory
 		def self.new_validator type, attribute, options={}
-			validator_class_name = "::Veto::#{camel_case(type.to_s)}Validator"
-			validator_class = const_get(validator_class_name)
-			validator_class.new(attribute, options)
-		rescue NameError => e
-			raise(ArgumentError, "Validator not found: #{validator_class_name}")
+			klass_name = "::Veto::#{camel_case(type.to_s)}Validator"
+
+			begin
+			  klass = const_get(klass_name)
+			rescue NameError => e
+			  raise(ArgumentError, "Validator not found: #{klass_name}")
+			end
+
+			klass.new(attribute, options)
 		end
 
 		private

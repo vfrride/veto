@@ -1,110 +1,364 @@
 require 'spec_helper'
-require 'veto/validator'
+require 'veto'
 
 describe Veto do
-	let(:person){ stub }
-	let(:validator_class) { Class.new{ include Veto::Validator } }
-	let(:validator) { validator_class.new(person) }
+	let(:entity){ stub }
+	let(:validator_class) { Class.new{ include Veto.validator }}
+	let(:validator) { validator_class.new(entity) }
 
-	describe 'with_options conditions' do
-		context 'when conditions pass' do
-			let(:validator_class) do
-				klass = Class.new{
-					include Veto::Validator
+	describe 'built-in validations' do
+		let(:value) { 'abc123' }
+		let(:entity) {stub(:name => value)}
+		let(:errors) { validator.valid?; validator.errors.on(:name) }
+		let(:validator_type){ :presence }
+		let(:options) { true }
+		let(:validator_class) do
+			klass = Class.new{ include Veto.validator }
+			klass.validates :name, options
+			klass
+		end	
 
-					with_options :if => true do
-						validate :create_errors
-					end
+		describe 'exact_length' do
+			let(:options) {{:exact_length => 10}}
 
-					def create_errors
-						errors.add(:base, "error")
-					end
-				}
-			end	
+			context 'when value exact length' do
+				let(:value) { 'abcdefghij' }
+				it { errors.must_be_nil }
+			end
 
-			it 'performs validations within block' do
-				validator.valid?.must_equal false
-				validator.errors.full_messages.must_equal ['base error']
+			context 'when value is too short' do
+				let(:value) { 'short' }
+				it { errors.must_equal ["is not 10 characters"] }
+			end
+
+			context 'when value is too long' do
+				let(:value) { 'this title is wayyyy to long' }
+				it { errors.must_equal ["is not 10 characters"] }
+			end
+
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is not 10 characters"] }
 			end
 		end
 
-		context 'when conditions fail' do
-			let(:validator_class) do
-				klass = Class.new{
-					include Veto::Validator
+		describe 'format' do
+			let(:options) {{:format => /^\d+$/}}
 
-					with_options :if => false do
-						validate :create_errors
-					end
+			context 'when value matches pattern' do
+				let(:value) { 123 }
+				it { errors.must_be_nil }
+			end
 
-					def create_errors
-						errors.add(:base, "error")
-					end
-				}
-			end	
+			context 'when value does not match' do
+				let(:value) { 'abc' }
+				it { errors.must_equal ["is not valid"] }
+			end
 
-			it 'does not perform validations within block' do
-				validator.valid?
-				validator.errors.must_be_empty
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is not valid"] }
 			end
 		end
-	end
 
-	describe 'validates conditions' do
-		let(:person){ stub(:title => nil, :name => 'John') }
+		describe 'inclusion' do
+			context 'when set is array' do
+				let(:options) {{:inclusion => %w(cat dog bird rabbit)}}
 
-		context 'when outer conditions pass' do
-			context 'when inner conditions pass' do
-				let(:validator_class) do
-					klass = Class.new{
-						include Veto::Validator
+				context 'when value is in set' do
+					let(:value) { 'cat' }
+					it { errors.must_be_nil }
+				end
 
-						validates :title, :not_null => {:with => true, :if => true}, :exact_length => {:with => 4, :if => true}, :if => true
-					}
-				end	
-
-				it 'performs validation' do
-					validator.valid?.must_equal false
-					validator.errors.full_messages.must_equal ["title is not present", "title is not 4 characters"]
-				end				
+				context 'when value is not in set' do
+					let(:value) { 'goat' }
+					it { errors.must_equal ["is not in set: [\"cat\", \"dog\", \"bird\", \"rabbit\"]"]}
+				end
 			end
 
-			context 'when inner conditions fail' do
-				let(:validator_class) do
-					klass = Class.new{
-						include Veto::Validator
+			context 'when set is range' do
+				let(:options) {{:inclusion => 10..20}}
 
-						validates :title, :not_null => {:with => true, :if => false}, :exact_length => {:with => 4, :if => true}, :if => true
-					}
-				end	
+				context 'when value is in set' do
+					let(:value) { 11 }
+					it { errors.must_be_nil }
+				end
 
-				it 'skips individual validator' do
-					validator.valid?.must_equal false
-					validator.errors.full_messages.must_equal ["title is not 4 characters"]
+				context 'when value is not in set' do
+					let(:value) { 5 }
+					it { errors.must_equal ["is not in set: 10..20"] }
 				end
 			end
 		end
 
-		context 'when outer conditions fail' do
-			let(:validator_class) do
-				klass = Class.new{
-					include Veto::Validator
+		describe 'integer' do
+			let(:options) {{:integer => true}}
 
-					validates :title, :not_null => {:with => true, :if => true}, :exact_length => {:with => 4, :if => true}, :if => false
-				}
-			end	
+			context 'when value is integer' do
+				let(:value) { 123 }
+				it { errors.must_be_nil }
+			end
 
-			it 'skips validates block' do
-				validator.valid?.must_equal true
+			context 'when value is float' do
+				let(:value) { 123.4 }
+				it { errors.must_equal ["is not a number"]}
+			end
+
+			context 'when value is string' do
+				let(:value) { 'abc' }
+				it { errors.must_equal ["is not a number"]}
+			end
+
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is not a number"]}
+			end
+
+			context 'when value is everything else' do
+				let(:value) { ['array'] }
+				it { errors.must_equal ["is not a number"]}
+			end
+		end
+
+		describe 'length_range' do
+			context 'when range is array' do
+				let(:options) {{:length_range => [5, 8, 15]}}
+
+				context 'when value length is in array' do
+					let(:value) { 'abcde' }
+					it { errors.must_be_nil }
+				end
+
+				context 'when value length is not in array' do
+					let(:value) { 'abc' }
+					it { errors.must_equal ["is too short or too long"] }
+				end
+
+				context 'when value length is nil' do
+					let(:value) { nil }
+					it { errors.must_equal ["is too short or too long"] }
+				end
+			end
+
+			context 'when range is range' do
+				let(:options) {{:length_range => 5..10}}
+
+				context 'when value length is in range' do
+					let(:value) { 'abcdef' }
+					it { errors.must_be_nil }
+				end
+
+				context 'when value length is not in range' do
+					let(:value) { 'abc' }
+					it { errors.must_equal ["is too short or too long"] }
+				end
+
+				context 'when value length is nil' do
+					let(:value) { nil }
+					it { errors.must_equal ["is too short or too long"] }
+				end	
+			end
+		end
+
+		describe 'max_length' do
+			let(:options) {{:max_length => 10}}
+
+			context 'when value length is less than max' do
+				let(:value) { 'abc' }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is too long' do
+				let(:value) { 'abcdefghijklmnop' }
+				it { errors.must_equal ["is longer than 10 characters"] }
+			end
+
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is longer than 10 characters"] }
+			end
+		end
+
+		describe 'min_length' do
+			let(:options) {{:min_length => 5}}
+
+			context 'when value length is greater than min' do
+				let(:value) { 'abcdefg' }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is too short' do
+				let(:value) { 'abcd' }
+				it { errors.must_equal ["is shorter than 5 characters"] }
+			end
+
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is shorter than 5 characters"] }
+			end
+		end
+
+		describe 'not_null' do
+			let(:options) {{:not_null => 5}}
+
+			context 'when value is not null' do
+				let(:value) { 123 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is not present"]}
+			end
+		end
+
+		describe 'numeric' do
+			let(:options) {{:numeric => true}}
+
+			context 'when value is integer' do
+				let(:value) { 123 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is float' do
+				let(:value) { 123.4 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is string' do
+				let(:value) { 'abc' }
+				it { errors.must_equal ["is not a number"]}
+			end
+
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is not a number"]}
+			end
+
+			context 'when value is everything else' do
+				let(:value) { ['array'] }
+				it { errors.must_equal ["is not a number"]}
+			end
+		end
+
+		describe 'presence' do
+			let(:options) {{:presence => true}}
+
+			context 'when value is not null' do
+				let(:value) { 123 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is nil' do
+				let(:value) { nil }
+				it { errors.must_equal ["is not present"]}
+			end
+
+			context 'when value is empty string' do
+				let(:value) { '' }
+				it { errors.must_equal ["is not present"]}
+			end
+
+			context 'when value is string of whitespace' do
+				let(:value) { '    ' }
+				it { errors.must_equal ["is not present"]}
+			end
+
+			context 'when value is empty array' do
+				let(:value) { [] }
+				it { errors.must_equal ["is not present"]}	
+			end
+
+			context 'when value is empty hash' do
+				let(:value) {{}}
+				it { errors.must_equal ["is not present"]}	
 			end
 		end
 	end
 
-	context 'when using custom validator' do
-		let(:person){ stub(:email_address => 'blah') }
+	describe 'conditions' do
+		describe 'with_options' do
+			let(:conditions) {{:if => true}}
+			let(:validator_class) do
+				klass = Class.new{
+					include Veto.validator
+
+					def create_errors
+						errors.add(:base, "error")
+					end
+				}
+				klass.with_options conditions do
+					validate :create_errors
+				end
+				klass
+			end	
+
+			context 'when conditions pass' do
+				let(:conditions) {{:if => true}}
+
+				it 'performs validations within block' do
+					validator.valid?.must_equal false
+					validator.errors.full_messages.must_equal ['base error']
+				end
+			end
+
+			context 'when conditions fail' do
+				let(:conditions) {{:if => false}}
+
+				it 'does not perform validations within block' do
+					validator.valid?
+					validator.errors.must_be_empty
+				end
+			end
+		end	
+
+		describe 'validates' do
+			let(:entity){ stub(:title => nil, :name => 'John') }
+			let(:options) {{}}
+			let(:validator_class) do
+				klass = Class.new{
+					include Veto.validator
+				}
+
+				klass.validates :title, options
+				klass
+			end	
+
+			context 'when outer conditions pass' do
+				context 'when inner conditions pass' do
+					let(:options) {{:not_null => {:with => true, :if => true}, :exact_length => {:with => 4, :if => true}, :if => true}}
+
+					it 'performs validation' do
+						validator.valid?.must_equal false
+						validator.errors.full_messages.must_equal ["title is not present", "title is not 4 characters"]
+					end				
+				end
+
+				context 'when inner conditions fail' do
+					let(:options) {{:not_null => {:with => true, :if => false}, :exact_length => {:with => 4, :if => true}, :if => true}}
+
+					it 'skips individual validator' do
+						validator.valid?.must_equal false
+						validator.errors.full_messages.must_equal ["title is not 4 characters"]
+					end
+				end
+			end
+
+			context 'when outer conditions fail' do
+				let(:options) {{:not_null => {:with => true, :if => true}, :exact_length => {:with => 4, :if => true}, :if => false}}
+
+				it 'skips validates block' do
+					validator.valid?.must_equal true
+				end
+			end
+		end
+	end
+
+	describe 'custom attribute validator class' do
+		let(:entity){ stub(:email_address => 'blah') }
 		let(:validator_class) do
 			klass = Class.new{
-				include Veto::Validator
+				include Veto.validator
 
 				class EmailValidator < ::Veto::AttributeValidator
 					def validate entity, attribute, value, errors, options={}
