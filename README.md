@@ -4,6 +4,8 @@ Veto provides lightweight validation for plain old ruby objects, using a familia
 
 Tested on the following Rubies: MRI 2.0.0.
 
+[![Build Status](https://travis-ci.org/kodio/veto.png)](https://travis-ci.org/kodio/veto)
+
 ## Installation
 
 Add this line to your application's Gemfile:
