@@ -222,6 +222,50 @@ class PersonValidator
 end
 ```
 
+### Greater Than
+This helper checks that the specified attribute can be a valid float which is greater than a specified value.
+
+```ruby
+class PersonValidator
+    include Veto.validator
+    
+    validates :age, :greater_than => 12    
+end
+```
+
+### Greater Than Or Equal To
+This helper checks that the specified attribute can be a valid float which is greater than or equal to a specified value.
+
+```ruby
+class PersonValidator
+    include Veto.validator
+    
+    validates :age, :greater_than_or_equal_to => 12    
+end
+```
+
+### Less Than
+This helper checks that the specified attribute can be a valid float which is less than a specified value.
+
+```ruby
+class PersonValidator
+    include Veto.validator
+    
+    validates :age, :less_than => 11   
+end
+```
+
+### Less Than Or Equal To
+This helper checks that the specified attribute can be a valid float which is less than or equal to a specified value.
+
+```ruby
+class PersonValidator
+    include Veto.validator
+    
+    validates :age, :less_than_or_equal_to => 11   
+end
+```
+
 ### Exact Length
 This helper checks that an attribute is an exact length in characters.
 

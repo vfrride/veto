@@ -61,6 +61,122 @@ describe Veto do
 			end
 		end
 
+		describe 'greater_than' do
+			let(:options) {{:greater_than => 10}}
+
+			context 'when value is greater than option' do
+				let(:value) { 11 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when float is greater than option' do
+				let(:value) { 11.123 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is equal to option' do
+				let(:value) { 10 }
+				it { errors.must_equal ["must be greater than 10"] }
+			end
+
+			context 'when value is less than option' do
+				let(:value) { 9 }
+				it { errors.must_equal ["must be greater than 10"] }
+			end
+
+			context 'when value is string' do
+				let(:value) { 'abc' }
+				it { errors.must_equal ["must be greater than 10"] }
+			end
+		end
+
+		describe 'greater_than_or_equal_to' do
+			let(:options) {{:greater_than_or_equal_to => 10}}
+
+			context 'when value is greater than option' do
+				let(:value) { 11 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when float value is greater than option' do
+				let(:value) { 11.123 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is equal to option' do
+				let(:value) { 10 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is less than option' do
+				let(:value) { 9 }
+				it { errors.must_equal ["must be greater than or equal to 10"] }
+			end
+
+			context 'when value is a string' do
+				let(:value) { 'abc' }
+				it { errors.must_equal ["must be greater than or equal to 10"] }
+			end
+		end
+
+		describe 'less_than' do
+			let(:options) {{:less_than => 10}}
+
+			context 'when value is less than option' do
+				let(:value) { 9 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when float value is less than option' do
+				let(:value) { 8.123 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is equal to option' do
+				let(:value) { 10 }
+				it { errors.must_equal ["must be less than 10"] }
+			end
+
+			context 'when value is greater than option' do
+				let(:value) { 11 }
+				it { errors.must_equal ["must be less than 10"] }
+			end
+
+			context 'when value is a string' do
+				let(:value) { 'abc' }
+				it { errors.must_equal ["must be less than 10"] }
+			end
+		end
+
+		describe 'less_than_or_equal_to' do
+			let(:options) {{:less_than_or_equal_to => 10}}
+
+			context 'when value is less than option' do
+				let(:value) { 9 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when float value is less than option' do
+				let(:value) { 8.123 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is equal to option' do
+				let(:value) { 10 }
+				it { errors.must_be_nil }
+			end
+
+			context 'when value is greater than option' do
+				let(:value) { 11 }
+				it { errors.must_equal ["must be less than or equal to 10"] }
+			end
+
+			context 'when value is a string' do
+				let(:value) { 'abc' }
+				it { errors.must_equal ["must be less than or equal to 10"] }
+			end
+		end
+
 		describe 'inclusion' do
 			context 'when set is array' do
 				let(:options) {{:inclusion => %w(cat dog bird rabbit)}}
