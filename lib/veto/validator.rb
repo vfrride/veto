@@ -8,6 +8,8 @@ module Veto
 			base.extend ClassMethods
 		end
 
+
+
 		module ClassMethods
 			def with_options *args, &block
 				builder.with_options(*args, &block)
@@ -74,6 +76,27 @@ module Veto
 
 			def builder
 				@builder ||= ::Veto::Builder.new(self)
+			end
+
+			# Ensures that when a Validator class is subclassed, the 
+			# validation rules will be carried into the subclass as well,
+			# where they may be added upon.
+			# 
+			# @example
+			# 	class PersonValidator
+			# 		include Veto.validator
+			# 		validates :name, :presence => true
+			# 	end
+			#
+			# 	class EmployeeValidator < PersonValidator
+			# 		validates :employee_id, :presence => true
+			# 	end
+			#
+			# 	employee = Employee.new
+			# 	EmployeeValidator.validate!(employee) # => ["name is not present", "employee_id is not present"]
+						
+			def inherited(descendant)
+				descendant.validate_with validators
 			end
 		end
 

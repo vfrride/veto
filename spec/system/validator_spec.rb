@@ -493,4 +493,38 @@ describe Veto do
 			validator.errors.full_messages.must_equal ["email_address is not a valid email address"]
 		end
 	end
+
+	describe 'validator descendents/inheritence' do
+		let(:validator_class) do
+			Class.new{
+				include Veto.validator
+
+				validate :create_superclass_error
+
+				def create_superclass_error
+					errors.add(:base, "superclass error")
+				end
+			}
+		end
+
+		context 'when validator is subclassed' do
+			let(:validator_subclass) do
+				Class.new(validator_class){
+
+					validate :create_subclass_error
+
+					def create_subclass_error
+						errors.add(:base, "subclass error")
+					end
+				}
+			end	
+
+			it 'inherits superclass validation rules' do
+				validator = validator_subclass.new(entity)
+
+				validator.valid?
+				validator.errors.must_equal({:base=>["superclass error", "subclass error"]})
+			end
+		end
+	end
 end
