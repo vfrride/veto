@@ -54,8 +54,8 @@ module Veto
 			# @param entity [Object] the entity instance to validate.
         	#
         	# @return [Boolean]
-			def valid? entity
-				new(entity).valid?
+			def valid? *args
+				new(*args).valid?
 			end
 
 			# Raises exception if entity is invalid
@@ -66,8 +66,8 @@ module Veto
 			#
 			# @param entity [Object] the entity instance to be validated.
 			# @raise [Veto::InvalidEntity] if the entity is invalid
-			def validate! entity
-				new(entity).validate!
+			def validate! *args
+				new(*args).validate!
 			end
 
 			private
