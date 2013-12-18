@@ -2,7 +2,7 @@
 
 Veto provides lightweight validation for plain old ruby objects, using a familiar DSL.
 
-Tested on the following Rubies: MRI 2.0.0.
+Tested on the following Rubies: MRI 2.0.0, 1.9.3
 
 [![Build Status](https://travis-ci.org/kodio/veto.png)](https://travis-ci.org/kodio/veto)
 
