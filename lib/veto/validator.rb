@@ -8,8 +8,6 @@ module Veto
 			base.extend ClassMethods
 		end
 
-
-
 		module ClassMethods
 			def with_options *args, &block
 				builder.with_options(*args, &block)

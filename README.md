@@ -32,8 +32,8 @@ $ gem install veto
 class PersonValidator
     include Veto.validator
     
-    validate :name, :presence => true
-    validate :age, :inclusion => 0..100
+    validates :name, :presence => true
+    validates :age, :inclusion => 0..100
 end
 
 # Create an entity
