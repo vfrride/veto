@@ -41,107 +41,20 @@ class Person
     attr_reader :name, :age, :errors
 end
 
-person = Person.new
+person = Person.new 
 
-# Validation using class methods
+# Validate entity
 
-PersonValidator.valid?(person) # => false
-PersonValidator.validate!(person) # => # => Veto::InvalidEntity, ["name is not present", "..."]  
-
-# Validation using validator instance
-
-validator = PersonValidator.new(person)
-validator.valid? # => false
-validator.validate! # => # => Veto::InvalidEntity, ["name is not present", "..."]  
+validator = PersonValidator.new
+validator.valid?(person) # => false
+validator.validate!(person) # => # => Veto::InvalidEntity, ["name is not present", "..."]  
 validator.errors.full_messages # => ["first name is not present", "..."]
 
 # If entity has errors attr_accessor, errors will be passed to the entity
 
 person.errors # => nil
-PersonValidator.valid?(person) # => false
-person.errors.full_messages # => ["first name is not present", "..."]
-```
-
-### Class Method Usage
-
-The simplest way to validate an entity is to pass it directly to one of the validator's class methods.
-
-#### valid?
-
-Validate an entity by passing it to the `valid?` method.
-
-```ruby
-person = Person.new
-PersonValidator.valid?(person) # => false
-```
-      
-#### validate!
-
-For strict validations, pass the entity to the `validate!` method instead. This method will raise an exception if the validation fails.
-    
-```ruby
-person = Person.new
-PersonValidator.validate!(person) # => Veto::InvalidEntity, ["first name is not present", "..."]    
-```
-
-### Instance Method Usage
-        
-Using a validator instance is also simple, and has some advantages in regards to validation errors (more below). The validation methods available on a validator instance are the same as the class methods.    
-
-#### initialization
-
-When creating a validator instance, the entity you wish to be validated needs to be passed as an argument to the `new` method.
-
-```ruby
-person = Person.new
-validator = PersonValidator.new(person)
-```  
-#### valid?
-
-Calling the `valid?` method on a validator instance will return a boolean response, although the method does not receive  arguments.
-
-```ruby
-person = Person.new
-validator = PersonValidator.new(person)
-validator.valid? # => false
-```   
-
-#### validate!
-
-For strict validations…
-
-```ruby  
-person = Person.new
-validator = PersonValidator.new(person)
-validator.validate! # => Veto::InvalidEntity, ["first name is not present", "..."]
-```
-
-#### errors
-
-The `errors` method will return an errors object. The errors object will contain the error messages generated during the most recent validation.
-
-```ruby
-person = Person.new
-validator = PersonValidator.new(person)
-validator.errors.full_messages # => []
-
-validator.valid? # => false
-validator.errors.full_messages # => ["first name is not present", "..."]
-```
-
-### Errors on Entity
-
-Whether you're validating via validator class methods or a validator instance, if the entity being validated has an `errors` attr_accessor defined, the validator will attempt to populate the entity with an errors object each time it is validated.
-
-```ruby
-class Person
-    attr_accessor :errors, :first_name, :last_name, ...
-end
-
-person = Person.new
-person.errors # => nil
-
-PersonValidator.valid?(person) # => false
+validator = PersonValidator.new
+validator.valid?(person) # => false
 person.errors.full_messages # => ["first name is not present", "..."]
 ```
 

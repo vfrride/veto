@@ -1,30 +1,25 @@
 require 'spec_helper'
-require 'veto/configuration'
 
 describe Veto::Configuration::Message do
-	let(:msg_proc){ Proc.new{'custom message'} }
-	let(:msg){ Veto::Configuration::Message.new }
+  it 'gets message for check type' do
+    msg = new_message
+    msg.get(:exact_length, 23).must_equal('is not 23 characters')
+  end
 
-	describe '#set' do
-		it 'sets options on type' do
-			msg.send(:custom_messages).must_equal({})
-			msg.set(:exact_format, msg_proc)
-			msg.send(:custom_messages).must_equal({:exact_format => msg_proc})
-		end
-	end
+  it 'overrides message for check type' do
+    msg = new_message
+    msg.set(:exact_length, Proc.new{'custom message'})
+    msg.get(:exact_length).must_equal('custom message')
+  end
 
-	describe '#get' do
-		context 'when custom_message is defined' do
-			it 'returns custom message' do
-				msg.set(:presence, msg_proc)
-				msg.get(:presence).must_equal 'custom message'				
-			end
-		end
+  context 'when type unknown' do
+    it 'outputs default message' do
+      msg = new_message
+      msg.get(:does_not_exist).must_equal('is not valid')
+    end
+  end
 
-		context 'when custom_message is not defined' do
-			it 'returns default message' do
-				msg.get(:presence).must_equal 'is not present'				
-			end
-		end
-	end
+  def new_message
+    Veto::Configuration::Message.new
+  end
 end
