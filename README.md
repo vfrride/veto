@@ -264,7 +264,8 @@ class PersonValidator
 end
 
 person = Person.new
-PersonValidator.validate!(person) # => Veto::InvalidEntity, ["last_name is not present""]   
+validator = PersonValidator.new
+validator.validate!(person) # => Veto::InvalidEntity, ["last_name is not present"]  
 ```
 
 ## Conditional Validation
