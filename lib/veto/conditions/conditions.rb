@@ -1,3 +1,5 @@
+require 'forwardable'
+
 module Veto
   class Conditions < Condition
     extend Forwardable
